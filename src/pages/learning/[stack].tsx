@@ -25,10 +25,11 @@ export default function Stack({
     }
   }, [messages])
 
-  const onSubmit = (prompt: string) => {
+  const onSubmit = async (prompt: string) => {
     if (prompt.trim().length === 0) {
       return
     }
+
     setMessages((messages) => {
       return [
         ...messages,
@@ -41,12 +42,38 @@ export default function Stack({
         },
       ]
     })
+
+    const response = await fetch('/api/completion', {
+      method: 'POST',
+      body: JSON.stringify({ prompt }),
+      headers: {
+        'Content-type': 'application/json',
+      },
+    })
+
+    const json = await response.json()
+
+    if (response.ok) {
+      setMessages((messages) => {
+        return [
+          ...messages,
+          {
+            id: new Date().toISOString(),
+            author: 'ai',
+            avatar:
+              'https://e7.pngegg.com/pngimages/589/237/png-clipart-orange-and-brown-ai-logo-area-text-symbol-adobe-ai-text-trademark.png',
+            text: json.result,
+          },
+        ]
+      })
+    } else {
+      console.error(json?.error?.message)
+    }
   }
 
   return (
     <div className='h-full flex flex-col'>
       <Header logo={stack.logo} info={stack.info} />
-
       <hr className='my-4' />
       <div ref={chatRef} className='chat flex flex-col h-full overflow-scroll'>
         {messages.map((message, index) => (
@@ -55,6 +82,7 @@ export default function Stack({
             idx={index}
             avatar={message.avatar}
             text={message.text}
+            author={message.author}
           />
         ))}
       </div>
@@ -107,7 +135,7 @@ export const getStaticProps: GetStaticProps<StackPageProps> = async (
 
 type TMessages = {
   id: string
-  author: string
+  author: 'ai' | 'human'
   avatar: string
   text: string
 }
