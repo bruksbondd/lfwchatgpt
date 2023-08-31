@@ -1,4 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { Configuration, OpenAIApi } from 'openai'
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+
+const AI_PROMPT =
+  "The following is a conversation with Walt. Walt is helpful and creative. Walt's only knowledge is React JS library. He can only answer questions related to React JS. He only cares about React JS. Walt provides often code examples. Walt provides answers formated in markdown format."
+const AI_RESPONSE =
+  "```js\nimport React from 'react';\n\nconst MyComponent = () => {\n  return <div>I'm a simple component!</div>;\n};\n\nexport default MyComponent;\n```\n\nThis example is a basic React component. It imports the React library, defines a component function, and returns a DOM element. Finally, the component is exported so it can be imported and used in other components."
 
 export default async function completion(
   req: NextApiRequest,
@@ -8,10 +18,24 @@ export default async function completion(
     const body = req.body
     const prompt = body.prompt || ''
 
-    const aiResponse = 'React JS is a library for creating UIs..'
-    await new Promise((res) => setTimeout(res, 500))
+    try {
+      const openai = new OpenAIApi(configuration)
+      const formatedPrompt = AI_PROMPT + '\n' + prompt + '\n' + 'Walt:'
 
-    return res.status(200).json({ result: aiResponse })
+      const completion: any = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: formatedPrompt,
+        temperature: 0.7,
+        max_tokens: 1024,
+      })
+
+      const aiResponse = completion.data.choices[0].text.trim()
+      return res.status(200).json({ result: aiResponse })
+    } catch (e) {
+      return res.status(500).json({ error: { message: (e as Error).message } })
+    }
+    // const aiResponse = 'React JS is a library for creating UIs..'
+    // await new Promise((res) => setTimeout(res, 500))
   } else {
     return res.status(500).json({ error: { messages: 'Invalid Api Router' } })
   }
