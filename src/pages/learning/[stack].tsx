@@ -2,6 +2,7 @@ import { Header } from '@/components/Header'
 import { Message } from '@/components/Message'
 import { Prompt } from '@/components/Prompt'
 import stacks from '@/data/stacks.json'
+import useUser from '@/hooks/useUser'
 import {
   Params,
   Stack,
@@ -25,8 +26,15 @@ export default function Stack({
   stackKey,
 }: StackPageProps): JSX.Element {
   const [messages, setMessages] = useState<Array<TMessages>>([])
+  const [activeSession, setActiveSession] = useState<string | string[]>('')
+  const { user } = useUser()
   const chatRef = useRef<null | HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (user) {
+      setActiveSession(user.uid)
+    }
+  }, [user])
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTo(0, chatRef.current.scrollHeight)
@@ -79,11 +87,32 @@ export default function Stack({
     }
   }
 
+  const handleSessionChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const session = e.target.value
+
+    if (!session) {
+      console.log('Not valid session!')
+      return
+    }
+    await fetch(`/api/completion?uid=${session}`, { method: 'PUT' })
+    setActiveSession(session)
+  }
+
   return (
     <div className='h-full flex flex-col'>
       <Header logo={stack.logo} info={stack.info} />
-      <select className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-[200px] p-2.5 mt-5'>
-        <option value={''}>Choose session</option>
+      <div className='mt-4'>Active ses: {activeSession}</div>
+      <div className='mt-4'>Uid: {user?.uid}</div>
+      <select
+        onChange={handleSessionChange}
+        value={activeSession}
+        className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-[200px] p-2.5 mt-5'
+      >
+        <option value={''} disabled={activeSession !== ''}>
+          Choose session
+        </option>
         {SESSION_KEYS.map((sk) => (
           <option key={sk} value={sk}>
             {sk}

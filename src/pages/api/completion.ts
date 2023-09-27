@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Configuration, OpenAIApi } from 'openai'
+import { withNextSession } from '@/lib/session'
+import { dbConnect } from '@/lib/lowDb'
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,33 +12,66 @@ const AI_PROMPT =
 const AI_RESPONSE =
   "```js\nimport React from 'react';\n\nconst MyComponent = () => {\n  return <div>I'm a simple component!</div>;\n};\n\nexport default MyComponent;\n```\n\nThis example is a basic React component. It imports the React library, defines a component function, and returns a DOM element. Finally, the component is exported so it can be imported and used in other components."
 
-export default async function completion(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === 'POST') {
-    const body = req.body
-    const prompt = body.prompt || ''
+export default withNextSession(
+  async (req: NextApiRequest, res: NextApiResponse) => {
+    if (req.method === 'POST') {
+      const db = await dbConnect()
+      console.log(db)
+      const body = req.body
+      const prompt = body.prompt || ''
+      const { user } = req.session
 
-    try {
-      const openai = new OpenAIApi(configuration)
-      const formatedPrompt = AI_PROMPT + '\n' + prompt + '\n' + 'Walt:'
+      if (!configuration.apiKey) {
+        return res
+          .status(500)
+          .json({ result: { message: 'SessionOpenAi api Key is missing!' } })
+      }
+      if (!user) {
+        return res
+          .status(500)
+          .json({ result: { message: 'Session is missing!' } })
+      }
 
-      const completion: any = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: formatedPrompt,
-        temperature: 0.7,
-        max_tokens: 1024,
-      })
+      console.log(user.uid)
 
-      const aiResponse = completion.data.choices[0].text.trim()
-      return res.status(200).json({ result: aiResponse })
-    } catch (e) {
-      return res.status(500).json({ error: { message: (e as Error).message } })
+      try {
+        const openai = new OpenAIApi(configuration)
+        const formatedPrompt = AI_PROMPT + '\n' + prompt + '\n' + 'Walt:'
+
+        const completion: any = await openai.createCompletion({
+          model: 'text-davinci-003',
+          prompt: formatedPrompt,
+          temperature: 0.7,
+          max_tokens: 1024,
+        })
+
+        const aiResponse = completion.data.choices[0].text.trim()
+        return res.status(200).json({ result: aiResponse })
+      } catch (e) {
+        return res
+          .status(500)
+          .json({ error: { message: (e as Error).message } })
+      }
+      // const aiResponse = 'React JS is a library for creating UIs..'
+      // await new Promise((res) => setTimeout(res, 500))
+    } else if (req.method === 'PUT') {
+      const { uid } = req.query
+
+      if (!uid) {
+        return res
+          .status(500)
+          .json({ error: { message: 'Invalid uid provided!' } })
+      }
+
+      req.session.user = {
+        uid,
+      }
+
+      await req.session.save()
+
+      return res.status(200).json(uid)
+    } else {
+      return res.status(500).json({ error: { messages: 'Invalid Api Router' } })
     }
-    // const aiResponse = 'React JS is a library for creating UIs..'
-    // await new Promise((res) => setTimeout(res, 500))
-  } else {
-    return res.status(500).json({ error: { messages: 'Invalid Api Router' } })
   }
-}
+)
