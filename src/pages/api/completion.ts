@@ -2,21 +2,25 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { Configuration, OpenAIApi } from 'openai'
 import { withNextSession } from '@/lib/session'
 import { dbConnect } from '@/lib/lowDb'
+import bots from './bots.json'
+
+type Keys = keyof typeof bots
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-const AI_PROMPT =
-  "The following is a conversation with Walt. Walt is helpful and creative. Walt's only knowledge is React JS library. He can only answer questions related to React JS. He only cares about React JS. Walt provides often code examples. Walt provides answers formated in markdown format."
 const AI_RESPONSE =
   "```js\nimport React from 'react';\n\nconst MyComponent = () => {\n  return <div>I'm a simple component!</div>;\n};\n\nexport default MyComponent;\n```\n\nThis example is a basic React component. It imports the React library, defines a component function, and returns a DOM element. Finally, the component is exported so it can be imported and used in other components."
 const USER_NAME = 'Human'
 const AI_NAME = 'Walt'
 
+const MEMORY_SIZE = 6
+
 export default withNextSession(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === 'POST') {
+      const stack = req.query.stack as Keys
       const body = req.body
       const prompt = body.prompt || ''
       const { user } = req.session
@@ -40,22 +44,27 @@ export default withNextSession(
         db.data.messageHistory[user.uid] =
           db.data.messageHistory[user.uid] || []
         db.data.messageHistory[user.uid].push(`${USER_NAME}: ${prompt}\n`)
+        const aiPrompt = bots[stack].prompt
 
         const openai = new OpenAIApi(configuration)
-        const formatedPrompt = AI_PROMPT + '\n' + prompt + '\n' + 'Walt:'
+        //const formatedPrompt = AI_PROMPT + '\n' + prompt + '\n' + 'Walt:'
 
         const completion: any = await openai.createCompletion({
           model: 'text-davinci-003',
           prompt:
-            AI_PROMPT + db.data.messageHistory[user.uid].join('') + 'Walt:',
+            aiPrompt + db.data.messageHistory[user.uid].join('') + 'Walt:',
           temperature: 0.7,
           max_tokens: 1024,
         })
 
         const aiResponse = completion.data.choices[0].text.trim()
         db.data.messageHistory[user.uid].push(`${AI_NAME}: ${aiResponse}\n`)
+
+        if (db.data.messageHistory[user.uid].length > MEMORY_SIZE) {
+          db.data.messageHistory[user.uid].splice(0, 2)
+        }
+
         await db.write()
-        console.log(db.data.messageHistory)
 
         return res.status(200).json({ result: aiResponse })
       } catch (e) {

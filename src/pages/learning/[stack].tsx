@@ -59,7 +59,7 @@ export default function Stack({
       ]
     })
 
-    const response = await fetch('/api/completion', {
+    const response = await fetch(`/api/completion?stack=${stackKey}`, {
       method: 'POST',
       body: JSON.stringify({ prompt }),
       headers: {
@@ -121,6 +121,11 @@ export default function Stack({
       </select>
       <hr className='my-4' />
       <div ref={chatRef} className='chat flex flex-col h-full overflow-scroll'>
+        {messages.length === 0 && (
+          <div className='bg-yellow-200 p-4 rounded-xl'>
+            No messages yet. Ask me something.
+          </div>
+        )}
         {messages.map((message, index) => (
           <Message
             key={message.id}
