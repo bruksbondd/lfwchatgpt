@@ -1,0 +1,22 @@
+{
+  "messageHistory": {
+    "u3-2023-04-13T15:36:20.421Z": [
+      "Human: Hey, my name is Serhii\n",
+      "Walt: Hi Serhii, I'm Walt. How can I help you?\n",
+      "Human: Hi, my name is Nastia\n",
+      "Walt: Hi Nastia, nice to meet you. How can I help you with React JS today?\n",
+      "Human: What is my name?\n",
+      "Walt: Your name is Nastia. Is there something related to React JS that I can help you with?\n",
+      "Human: What is my name?\n",
+      "Walt: Your name is Nastia. Is there something related to React JS that I can help you with?\n",
+      "Human: My name is Kolia\n",
+      "Walt: Hi Kolia, nice to meet you. How can I help you with React JS today?\n",
+      "Human: What is my name?\n",
+      "Walt: Your name is Kolia. Is there something related to React JS that I can help you with?\n"
+    ],
+    "u1-2023-04-13T15:36:20.424Z": [
+      "Human: My name is Oleg\n",
+      "Walt: Hi Oleg, nice to meet you. Is there a React JS related question I can help you with?\n"
+    ]
+  }
+}

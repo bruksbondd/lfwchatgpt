@@ -21,5 +21,5 @@ export type User = {
   isLoggedIn?: boolean
   login?: string
   avatarUrl?: string
-  uid: string | string[]
+  uid: string | string[] | number | any
 } | null
