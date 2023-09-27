@@ -21,9 +21,11 @@ export async function dbConnect() {
   if (!cached.conn) {
     const adapter = new JSONFile(file)
     const db = new Low(adapter, '')
-    db.data = { messageHistory: {} }
+    //db.data = { messageHistory: {} }
     cached.conn = db
   }
+
+  cached.conn.data = cached.conn.data || { messageHistory: {} }
 
   return cached.conn
 }

@@ -10,8 +10,6 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-const AI_RESPONSE =
-  "```js\nimport React from 'react';\n\nconst MyComponent = () => {\n  return <div>I'm a simple component!</div>;\n};\n\nexport default MyComponent;\n```\n\nThis example is a basic React component. It imports the React library, defines a component function, and returns a DOM element. Finally, the component is exported so it can be imported and used in other components."
 const USER_NAME = 'Human'
 const AI_NAME = 'Walt'
 
@@ -64,8 +62,6 @@ export default withNextSession(
           db.data.messageHistory[user.uid].splice(0, 2)
         }
 
-        await db.write()
-
         return res.status(200).json({ result: aiResponse })
       } catch (e) {
         return res
@@ -90,6 +86,17 @@ export default withNextSession(
       await req.session.save()
 
       return res.status(200).json(uid)
+    } else if (req.method === 'DELETE') {
+      const { user } = req.session
+
+      if (user) {
+        const db = await dbConnect()
+        db.data.messageHistory[user.uid] = []
+
+        return res.status(200).json({ message: 'History cleared!' })
+      }
+
+      return res.status(200).json({ message: 'Nothing to clear!' })
     } else {
       return res.status(500).json({ error: { messages: 'Invalid Api Router' } })
     }
