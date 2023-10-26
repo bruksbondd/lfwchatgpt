@@ -9,7 +9,7 @@
   },
   "nextjs": {
     "href": "/learning/nextjs",
-    "logo": "/nextjs-logo.png",
+    "logo": "/nextjs.png",
     "info": "Used by some of the world's largest companies, Next.js enables you to create full-stack Web applications by extending the latest React features, and integrating powerful Rust-based JavaScript tooling for the fastest builds.",
     "docs": ["https://nextjs.org/"],
     "name": "Next JS",
@@ -17,7 +17,7 @@
   },
   "typetscript": {
     "href": "/learning/typetscript",
-    "logo": "/svelte-logo.png",
+    "logo": "/typescript.png",
     "info": "TypeScript is a strongly typed programming language that builds on JavaScript, giving you better tooling at any scale.",
     "docs": ["https://www.typescriptlang.org/"],
     "name": "TypeScript",
