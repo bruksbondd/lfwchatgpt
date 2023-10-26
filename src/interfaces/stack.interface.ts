@@ -9,7 +9,7 @@ export interface Stack {
   hoverClass?: string;
 }
 
-export type StackKey = 'react' | 'next' | 'typetscript';
+export type StackKey = 'react' | 'nextjs' | 'typetscript';
 
 export interface StackPageProps extends Record<string, unknown> {
   stack: Stack;
